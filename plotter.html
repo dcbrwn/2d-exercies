@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="plotter.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+      'use strict';
+
+      const canvas = document.getElementById('canvas');
+      const plotter = new Plotter(canvas);
+      const origin = vec2(0.3, 0.3);
+      render(vec2(0.5));
+
+      canvas.onmousemove = (e) => {
+        render(plotter.mapToViewport([e.offsetX, e.offsetY]));
+      }
+
+      function render(point) {
+        plotter.graphLayout(1);
+        plotter.stroke = 'red';
+        plotter.vector(origin, point.vsub(origin), 'R');
+      }
+    </script>
+  </body>
+</html>

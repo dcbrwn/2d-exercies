@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="plotter.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+      'use strict';
+
+      const canvas = document.getElementById('canvas');
+      const plotter = new Plotter(canvas);
+
+      render(Math.PI / 3, 0.5);
+
+      canvas.onmousemove = (e) => {
+        const point = plotter.mapToViewport([e.offsetX, e.offsetY]);
+        render(Math.PI / 3 + Math.PI / 6 * point.x, point.y);
+      }
+
+      function render(angle, y) {
+        plotter.graphLayout(1);
+        plotter.stroke = 'black';
+        plotter.segment(vec2(-1, y), vec2(1, y));
+        plotter.stroke = 'red';
+        for (let i = -1; i <= 1; i += 0.2) {
+          plotter.vector(vec2(0), vec2(i * Math.tan(angle / 2), y));
+        }
+      }
+    </script>
+  </body>
+</html>

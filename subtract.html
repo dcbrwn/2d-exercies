@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="plotter.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+      'use strict';
+
+      const canvas = document.getElementById('canvas');
+      const plotter = new Plotter(canvas);
+
+      const origin = vec2(0, 0);
+      let a = vec2(0, 1);
+      let b = vec2(1, 0);
+
+      render(a, b);
+
+      canvas.onclick = (e) => {
+        b = plotter.mapToViewport([e.offsetX, e.offsetY]);
+        render(a, b);
+      }
+
+      canvas.onmousemove = (e) => {
+        a = plotter.mapToViewport([e.offsetX, e.offsetY]);
+        render(a, b);
+      }
+
+      function render(a, b) {
+        const diff = b.clone().vsub(a);
+        const sum = b.clone().vadd(a);
+        plotter.graphLayout(1);
+        plotter.stroke = 'red';
+        plotter.vector(origin, a, 'A');
+        plotter.stroke = 'green';
+        plotter.vector(origin, b, 'B');
+        plotter.stroke = 'blue';
+        plotter.vector(a, diff, '(B - A)', 0.7);
+        plotter.stroke = 'black';
+        plotter.vector(origin, sum, '(B + A)', 0.7);
+        plotter.stroke = 'lightgray';
+        plotter.segment(b, sum);
+        plotter.segment(a, sum);
+      }
+    </script>
+  </body>
+</html>

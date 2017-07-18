@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="plotter.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+      'use strict';
+
+      const canvas = document.getElementById('canvas');
+      const plotter = new Plotter(canvas);
+      const origin = vec2(0.0, 0.0);
+      render(vec2(0.5));
+
+      canvas.onmousemove = (e) => {
+        render(plotter.mapToViewport([e.offsetX, e.offsetY]));
+      }
+
+      function render(point) {
+        const direction = point.clone()
+          .vsub(origin)
+          .normalize();
+        const angle = direction.angleX();
+        const cos = vec2(Math.cos(angle), 0);
+        const sin = vec2(0, Math.sin(angle));
+        plotter.graphLayout(1);
+        plotter.stroke = 'gray';
+        plotter.arc(origin, 1);
+        plotter.segment(direction, cos);
+        plotter.segment(direction, sin);
+        plotter.stroke = 'blue';
+        plotter.arc(origin, 0.1, 0, Math.PI * 2 - angle);
+        plotter.stroke = 'red';
+        plotter.vector(origin, direction);
+        plotter.stroke = 'black';
+        plotter.vector(origin, sin, 'sin(a)');
+        plotter.stroke = 'green';
+        plotter.vector(origin, cos, 'cos(a)');
+      }
+    </script>
+  </body>
+</html>

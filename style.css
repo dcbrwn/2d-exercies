@@ -1,0 +1,44 @@
+body, html {
+  padding: 0;
+  margin: 0;
+}
+
+canvas {
+  display: block;
+  padding: 0;
+  margin: 0;
+}
+
+#contents {
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 300px;
+  background-color: ivory;
+  border-right: 1px solid bisque;
+}
+
+#contents header {
+  padding: 1em;
+  background: bisque;
+}
+
+#frame-container {
+  position: absolute;
+  text-align: center;
+  line-height: 100vh;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 300px;
+}
+
+#frame-container iframe {
+  display: inline-block;
+  border: 0;
+  width: 500px;
+  height: 500px;
+  vertical-align: middle;
+}

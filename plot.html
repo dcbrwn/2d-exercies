@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="plotter.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+      'use strict';
+
+      const canvas = document.getElementById('canvas');
+      const plotter = new Plotter(canvas);
+      plotter.graphLayout(1);
+      plotter.stroke = 'red';
+      plotter.plot((x) => Math.sin(x * Math.PI), -1, 1, 0.1);
+      plotter.stroke = 'green';
+      plotter.plot((x) => Math.cos(x * Math.PI), -1, 1, 0.1);
+    </script>
+  </body>
+</html>

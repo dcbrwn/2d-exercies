@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="plotter.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+      'use strict';
+
+      const canvas = document.getElementById('canvas');
+      const plotter = new Plotter(canvas);
+
+      let origin = vec2(0, 0);
+      render(vec2(0.5));
+
+      canvas.onclick = (e) => {
+        origin = plotter.mapToViewport([e.offsetX, e.offsetY]);
+      }
+
+      canvas.onmousemove = (e) => {
+        const point = plotter.mapToViewport([e.offsetX, e.offsetY]);
+        render(point);
+      }
+
+      function render(point) {
+        const intersection = Vec2.intersect(origin, point, [-1, point.y], [1, point.y]);
+        if (!intersection) return;
+        const incident = point.clone().vsub(origin);
+
+        plotter.graphLayout(1);
+        plotter.stroke = 'black';
+        plotter.segment([-1, point.y], [1, point.y]);
+        const normal = point.y < origin.y ? vec2(0, 1) : vec2(0, -1);
+        const reflection = incident.reflect(normal);
+        const refraction = incident.refract(normal, 1.1).normalize(incident.distance());
+        plotter.stroke = 'green';
+        plotter.vector(intersection, normal.clone().sdiv(3), 'n');
+        plotter.stroke = 'red';
+        plotter.vector(origin, incident, 'ray');
+        plotter.vector(intersection, reflection, 'rf');
+        plotter.stroke = 'gray';
+        plotter.vector(intersection, refraction, 'rr');
+      }
+    </script>
+  </body>
+</html>
