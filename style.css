@@ -1,12 +1,10 @@
-body, html {
+body, html, h1, canvas {
   padding: 0;
   margin: 0;
 }
 
-canvas {
+h1, canvas {
   display: block;
-  padding: 0;
-  margin: 0;
 }
 
 #contents {
