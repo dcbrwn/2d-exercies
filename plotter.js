@@ -1,13 +1,75 @@
 'use strict';
 
-class Vec2 extends Array {
+function isNear(value, target, error) {
+  return Math.abas(target - value) <= error;
+}
+
+function isInRange(value, from, to, error = 0) {
+  return value >= from - error && value <= to + error;
+}
+
+function line2line(A1, B1, C1, A2, B2, C2) {
+  const det = A1 * B2 - A2 * B1;
+
+  if (det == 0) return undefined;
+
+  return new ImmutableVec2(
+    (B2 * C1 - B1 * C2) / det,
+    (A1 * C2 - A2 * C1) / det
+  );
+}
+
+function segment2segment(a1, a2, b1, b2) {
+  const e = 0.01;
+  const A1 = a2[1] - a1[1];
+  const B1 = a1[0] - a2[0];
+  const C1 = A1 * a1[0] + B1 * a1[1];
+  const A2 = b2[1] - b1[1];
+  const B2 = b1[0] - b2[0];
+  const C2 = A2 * b1[0] + B2 * b1[1];
+
+  const intersectionPoint = line2line(A1, B1, C1, A2, B2, C2);
+
+  if (!intersectionPoint) return undefined;
+
+  const { x, y } = intersectionPoint;
+  const isPointOnLine = isInRange(x, Math.min(a1[0], a2[0]), Math.max(a1[0], a2[0]), e) &&
+    isInRange(x, Math.min(b1[0], b2[0]), Math.max(b1[0], b2[0]), e);
+
+  if (isPointOnLine) return new ImmutableVec2(x, y);
+}
+
+function ray2sphere(rayOrigin, rayDirection, sphereOrigin, radius) {
+  //a == 1; // because rdir must be normalized ???
+  const k = rayOrigin.vsub(sphereOrigin);
+  const b = k.dot(rayDirection);
+  const c = k.dot(k) - radius ** 2;
+  const d = b ** 2 - c;
+
+  if (d < 0) return undefined;
+
+  const sqrtfd = Math.sqrt(d);
+
+  // t, a == 1
+  const t1 = -b + sqrtfd;
+  const t2 = -b - sqrtfd;
+
+  const min_t  = Math.min(t1, t2);
+  const max_t = Math.max(t1, t2);
+  const t = (min_t >= 0) ? min_t : max_t;
+
+  return t > 0 ? t : null;
+}
+
+class ImmutableVec2 extends Array {
   constructor(x, y) {
     super();
     this.set(x, y);
+    Object.freeze(this);
   }
 
   set(x, y) {
-    if (Array.isArray(x) || x instanceof Vec2) {
+    if (Array.isArray(x) || x instanceof ImmutableVec2) {
       this[0] = x[0];
       this[1] = x[1];
     } else if (typeof x === 'number' && typeof y !== 'number') {
@@ -19,8 +81,6 @@ class Vec2 extends Array {
     } else {
       throw new Error('At least one parameter is required to set vector');
     }
-
-    return this;
   }
 
   get x() {
@@ -32,61 +92,43 @@ class Vec2 extends Array {
   }
 
   negate() {
-    this[0] = -this[0];
-    this[1] = -this[1];
-    return this;
+    return new ImmutableVec2(-this[0], -this[1]);
   }
 
   distance() {
-    const x = this[0];
-    const y = this[1];
-    return Math.sqrt(x * x + y * y);
+    return Math.sqrt(this[0] ** 2 + this[1] ** 2);
   }
 
   clone() {
-    return new Vec2(this[0], this[1]);
+    return new ImmutableVec2(this[0], this[1]);
   }
 
   vsub(vector) {
-    this[0] -= vector[0];
-    this[1] -= vector[1];
-    return this;
+    return new ImmutableVec2(this[0] - vector[0], this[1] - vector[1]);
   }
 
   ssub(scalar) {
-    this[0] -= scalar;
-    this[1] -= scalar;
-    return this;
+    return new ImmutableVec2(this[0] - scalar, this[1] - scalar);
   }
 
   vadd(vector) {
-    this[0] += vector[0];
-    this[1] += vector[1];
-    return this;
+    return new ImmutableVec2(this[0] + vector[0], this[1] + vector[1]);
   }
 
   sadd(scalar) {
-    this[0] += scalar;
-    this[1] += scalar;
-    return this;
+    return new ImmutableVec2(this[0] + scalar, this[1] + scalar);
   }
 
   sdiv(scalar) {
-    this[0] /= scalar;
-    this[1] /= scalar;
-    return this;
+    return new ImmutableVec2(this[0] / scalar, this[1] / scalar);
   }
 
   vmul(vector) {
-    this[0] *= vector[0];
-    this[1] *= vector[1];
-    return this;
+    return new ImmutableVec2(this[0] * vector[0], this[1] * vector[1]);
   }
 
   smul(scalar) {
-    this[0] *= scalar;
-    this[1] *= scalar;
-    return this;
+    return new ImmutableVec2(this[0] * scalar, this[1] * scalar);
   }
 
   dot(vector) {
@@ -95,25 +137,20 @@ class Vec2 extends Array {
 
   normalize(unit = 1) {
     const len = this.distance() / unit;
-    this[0] /= len;
-    this[1] /= len;
-    return this;
+    return new ImmutableVec2(this[0] / len, this[1] / len);
   }
 
   angleX() {
-    const len = this.distance();
-    return this[1] < 0
-      ? Math.PI + (Math.PI - Math.acos(this[0] / len))
-      : Math.acos(this[0] / len);
+    return Math.atan2(this[1], this[0]);
   }
 
   reflect(normal) {
     const dot = this[0] * normal[0] + this[1] * normal[1];
-    return new Vec2(this[0] - 2 * dot * normal[0], this[1] - 2 * dot * normal[1]);
+    return new ImmutableVec2(this[0] - 2 * dot * normal[0], this[1] - 2 * dot * normal[1]);
   }
 
   refract(normal, factor) {
-    const incident = this.clone().normalize();
+    const incident = this.normalize();
     const dot = normal.dot(incident);
     const k = 1 - factor * factor * (1 - dot * dot);
     if (k < 0) return vec2(0);
@@ -124,36 +161,17 @@ class Vec2 extends Array {
   }
 
   rotate(angle) {
-    const x = this[0];
-    const y = this[1];
-    this[0] = x * Math.cos(angle) - y * Math.sin(angle);
-    this[1] = x * Math.sin(angle) + y * Math.cos(angle);
-    return this;
-  }
-
-  static intersect(a1, a2, b1, b2) {
-    const e = 0.01;
-    const A1 = a2[1] - a1[1];
-    const B1 = a1[0] - a2[0];
-    const C1 = A1 * a1[0] + B1 * a1[1];
-    const A2 = b2[1] - b1[1];
-    const B2 = b1[0] - b2[0];
-    const C2 = A2 * b1[0] + B2 * b1[1];
-    const det = A1 * B2 - A2 * B1;
-    if (det == 0) return;
-    const x = (B2 * C1 - B1 * C2) / det;
-    const y = (A1 * C2 - A2 * C1) / det;
-    const isPointOnLine = x + e >= Math.min(a1[0], a2[0]) &&
-      x - e <= Math.max(a1[0], a2[0]) &&
-      x + e >= Math.min(b1[0], b2[0]) &&
-      x - e <= Math.max(b1[0], b2[0]);
-    if (isPointOnLine) return new Vec2(x, y);
+    const { x, y } = this;
+    return new ImmutableVec2(
+      x * Math.cos(angle) - y * Math.sin(angle),
+      x * Math.sin(angle) + y * Math.cos(angle)
+    );
   }
 }
 
 // Shorthand
 function vec2(x, y) {
-  return new Vec2(x, y);
+  return new ImmutableVec2(x, y);
 }
 
 class Plotter {
@@ -211,13 +229,21 @@ class Plotter {
     this.ctx.beginPath();
     this.ctx.arc(
       ...this.mapToCanvas(center),
-      // FIXME: Probably I should switch to transform matrices...
       this.canvasSize[0] / (this.domain[0][1] - this.domain[0][0]) * radius,
       startAngle,
       endAngle,
       true);
     this.ctx.stroke();
     this.ctx.closePath();
+  }
+
+  point(label, at) {
+    const [x, y] = this.mapToCanvas(at);
+    this.ctx.fillText(label, x - 4, y + -7);
+    this.ctx.beginPath()
+    this.ctx.arc(x, y, 3, 0, Math.PI * 2, true);
+    this.ctx.closePath();
+    this.ctx.fill();
   }
 
   set fill(style) {
@@ -240,8 +266,7 @@ class Plotter {
   vector(origin, direction, label, labelPos = 0.5) {
     const ctx = this.ctx;
     const arrowSize = 0.05;
-    const end = new Vec2(origin);
-    end.vadd(direction);
+    const end = origin.vadd(direction);
     const angle = direction.angleX();
 
     ctx.beginPath();
@@ -259,11 +284,11 @@ class Plotter {
     ctx.stroke();
     ctx.closePath();
     if (label) {
-      const shift = direction.clone()
+      const shift = direction
         .normalize()
         .rotate(Math.sign(Math.cos(angle)) * Math.PI / 2)
         .smul(0.05);
-      this.text(label, origin.clone().vadd(shift).vadd(direction.clone().smul(labelPos)));
+      this.text(label, origin.vadd(shift).vadd(direction.smul(labelPos)));
     }
   }
 
@@ -284,13 +309,13 @@ class Plotter {
   }
 
   graphLayout(axesSize) {
-    plotter.fill = 'ivory';
-    plotter.clear();
-    plotter.stroke = 'bisque';
-    plotter.grid();
+    this.fill = 'ivory';
+    this.clear();
+    this.stroke = 'bisque';
+    this.grid();
     if (axesSize) {
-      plotter.stroke = 'blue';
-      plotter.axes(axesSize);
+      this.stroke = 'cadetblue';
+      this.axes(axesSize);
     }
   }
 

@@ -25,11 +25,14 @@
       }
 
       function render(point) {
-        const intersection = Vec2.intersect(origin, point, [-1, point.y], [1, point.y]);
+        plotter.graphLayout(1);
+
+        const intersection = segment2segment(origin, point, [-1, point.y], [1, point.y]);
+
         if (!intersection) return;
+
         const incident = point.clone().vsub(origin);
 
-        plotter.graphLayout(1);
         plotter.stroke = 'black';
         plotter.segment([-1, point.y], [1, point.y]);
         const normal = point.y < origin.y ? vec2(0, 1) : vec2(0, -1);
