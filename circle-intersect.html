@@ -37,7 +37,7 @@
         plotter.stroke = 'black';
         plotter.fill = 'black';
         plotter.arc(C, r);
-        plotter.point("C", C);
+        plotter.point(C, "C");
 
         plotter.stroke = 'gray';
         plotter.segment(O, C, "S");
@@ -50,14 +50,14 @@
 
           // Projection of ray to vector OC
           const P = O.vadd(OP.smul(OC.dot(OP)));
-          plotter.point("P", P);
+          plotter.point(P, "P");
 
           plotter.fill = 'red';
-          plotter.point("X", X);
+          plotter.point(X, "X");
         }
 
         plotter.fill = 'black';
-        plotter.point("O", O);
+        plotter.point(O, "O");
       }
     </script>
   </body>
