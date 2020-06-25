@@ -61,7 +61,7 @@
         const N = X.vsub(C)
           .normalize()
           .smul(isInside ? -1 : 1);
-        plotter.stroke = "red";
+        plotter.stroke = "darkorange";
         plotter.vector(X, N.smul(2), `N${counter}`, 1.1);
 
         const Rf = OP.reflect(N);
@@ -71,11 +71,11 @@
         const Rr = OP.refract(N, isInside ? 1.5 : 1 / 1.5);
 
         if (Rr.distance() > 0.1) {
-          plotter.stroke = "gray";
+          plotter.stroke = "black";
           plotter.vector(X, Rr.smul(2), `Rr${counter}`, 1.2);
         }
 
-        plotter.fill = "gray";
+        plotter.fill = "black";
         plotter.point(X);
 
         renderSphere(X.vadd(Rr.smul(0.01)), Rr);
