@@ -39,26 +39,25 @@ function segment2segment(a1, a2, b1, b2) {
   if (isPointOnLine) return new ImmutableVec2(x, y);
 }
 
-function ray2sphere(rayOrigin, rayDirection, sphereOrigin, radius) {
-  //a == 1; // because rdir must be normalized ???
-  const k = rayOrigin.vsub(sphereOrigin);
-  const b = k.dot(rayDirection);
-  const c = k.dot(k) - radius ** 2;
-  const d = b ** 2 - c;
+function ray2sphere(rayOrigin, rayDirection, sphereOrigin, sphereRadius) {
+  const S = sphereOrigin.vsub(rayOrigin);
+  const D = rayDirection.dot(S);
+  const H = sphereRadius ** 2 - (S.dot(S) - D ** 2);
 
-  if (d < 0) return undefined;
+  if (H < 0) return undefined;
 
-  const sqrtfd = Math.sqrt(d);
+  const h = Math.sqrt(H);
+  const t1 = D + h;
 
-  // t, a == 1
-  const t1 = -b + sqrtfd;
-  const t2 = -b - sqrtfd;
+  // Both points are behind the ray origin
+  if (t1 < 0) return undefined;
 
-  const min_t  = Math.min(t1, t2);
+  const t2 = D - h;
+
+  const min_t = Math.min(t1, t2);
   const max_t = Math.max(t1, t2);
-  const t = (min_t >= 0) ? min_t : max_t;
 
-  return t > 0 ? t : null;
+  return (min_t >= 0) ? min_t : max_t;
 }
 
 class ImmutableVec2 extends Array {
@@ -254,18 +253,28 @@ class Plotter {
     this.ctx.strokeStyle = style;
   }
 
-  segment(a, b) {
+  segment(a, b, label, labelPos = 0.5) {
     const ctx = this.ctx;
     ctx.beginPath();
     this.moveTo(a);
     this.lineTo(b);
     ctx.stroke();
     ctx.closePath();
+
+    if (label) {
+      const direction = a.vsub(b);
+      const shift = direction
+        .normalize()
+        .rotate(Math.sign(Math.cos(direction.angleX())) * Math.PI / 2)
+        .smul(0.025);
+      this.text(label, b.vadd(direction.smul(labelPos)).vadd(shift));
+    }
   }
 
   vector(origin, direction, label, labelPos = 0.5) {
     const ctx = this.ctx;
-    const arrowSize = 0.05;
+    const arrowSize = 15 / this.canvasSize[0] * Math.abs(this.domain[0][1] - this.domain[0][0]);
+    console.log(arrowSize)
     const end = origin.vadd(direction);
     const angle = direction.angleX();
 
@@ -308,11 +317,11 @@ class Plotter {
     this.vector(vec2(0, -size), vec2(0, size * 2));
   }
 
-  graphLayout(axesSize) {
+  graphLayout(axesSize, gridSize) {
     this.fill = 'ivory';
     this.clear();
     this.stroke = 'bisque';
-    this.grid();
+    this.grid(gridSize);
     if (axesSize) {
       this.stroke = 'cadetblue';
       this.axes(axesSize);
