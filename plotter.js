@@ -1,7 +1,7 @@
 'use strict';
 
 function isNear(value, target, error) {
-  return Math.abas(target - value) <= error;
+  return Math.abs(target - value) <= error;
 }
 
 function isInRange(value, from, to, error = 0) {
@@ -157,7 +157,7 @@ class ImmutableVec2 extends Array {
     const k = 1 - factor * factor * (1 - dot * dot);
     if (k < 0) return vec2(0);
     const nfactor = factor * dot + Math.sqrt(k);
-    return vec2(
+    return new ImmutableVec2(
       factor * incident[0] - nfactor * normal[0],
       factor * incident[1] - nfactor * normal[1]);
   }
@@ -239,13 +239,16 @@ class Plotter {
     this.ctx.closePath();
   }
 
-  point(label, at) {
+  point(at, label) {
     const [x, y] = this.mapToCanvas(at);
-    this.ctx.fillText(label, x - 4, y + -7);
     this.ctx.beginPath()
     this.ctx.arc(x, y, 3, 0, Math.PI * 2, true);
     this.ctx.closePath();
     this.ctx.fill();
+
+    if (label) {
+      this.ctx.fillText(label, x - 4, y + -7);
+    }
   }
 
   set fill(style) {
@@ -277,7 +280,6 @@ class Plotter {
   vector(origin, direction, label, labelPos = 0.5) {
     const ctx = this.ctx;
     const arrowSize = 15 / this.canvasSize[0] * Math.abs(this.domain[0][1] - this.domain[0][0]);
-    console.log(arrowSize)
     const end = origin.vadd(direction);
     const angle = direction.angleX();
 

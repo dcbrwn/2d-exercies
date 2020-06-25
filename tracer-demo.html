@@ -1,0 +1,92 @@
+<!doctype html>
+<html>
+
+<head>
+  <link rel="stylesheet" href="style.css" />
+  <script src="plotter.js"></script>
+</head>
+
+<body>
+  <canvas id="canvas" width="500px" height="500px"></canvas>
+  <script>
+    "use strict";
+
+    const plotter = new Plotter(canvas);
+    plotter.viewport([-10, -10], [20, 20]);
+    const C = vec2(-2, -3.4);
+    const r = 3;
+    let O = vec2(2.3, 2.3);
+
+    render(vec2(0.5));
+
+    canvas.onmousemove = (e) => {
+      render(plotter.mapToViewport([e.offsetX, e.offsetY]));
+    }
+
+    canvas.onclick = (e) => {
+      O = plotter.mapToViewport([e.offsetX, e.offsetY]);
+    }
+
+    function render(point) {
+      plotter.graphLayout(10, 1);
+
+      const OP = point.vsub(O).normalize();
+
+      plotter.stroke = "black";
+      plotter.fill = "black";
+      plotter.arc(C, r);
+      plotter.point(C, "C");
+
+      let counter = 0;
+      const renderSphere = (O, OP) => {
+        const OC = C.vsub(O);
+
+        plotter.stroke = "rgba(0, 0, 0, 0.2)";
+        plotter.segment(O, O.vadd(OP.smul(100)));
+
+        const t = ray2sphere(O, OP, C, r);
+
+        if (!t) return;
+
+        if (counter > 3) return; // bailout
+
+        counter += 1;
+
+        plotter.stroke = "gray";
+
+        const X = O.vadd(OP.smul(t));
+
+        const isInside = OC.distance() < r;
+
+        const N = X.vsub(C)
+          .normalize()
+          .smul(isInside ? -1 : 1);
+        plotter.stroke = "red";
+        plotter.vector(X, N.smul(2), `N${counter}`, 1.1);
+
+        const Rf = OP.reflect(N);
+        plotter.stroke = "gray";
+        plotter.vector(X, Rf.smul(2), `Rf${counter}`, 1.1);
+
+        const Rr = OP.refract(N, isInside ? 1.5 : 1 / 1.5);
+
+        if (Rr.distance() > 0.1) {
+          plotter.stroke = "gray";
+          plotter.vector(X, Rr.smul(2), `Rr${counter}`, 1.2);
+        }
+
+        plotter.fill = "gray";
+        plotter.point(X);
+
+        renderSphere(X.vadd(Rr.smul(0.01)), Rr);
+      };
+
+      renderSphere(O, OP);
+
+      plotter.fill = "black";
+      plotter.point(O, "O");
+    }
+  </script>
+</body>
+
+</html>
