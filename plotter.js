@@ -283,19 +283,22 @@ class Plotter {
     const end = origin.vadd(direction);
     const angle = direction.angleX();
 
+    ctx.fillStyle = ctx.strokeStyle;
+
     ctx.beginPath();
     this.moveTo(origin);
     this.lineTo(end);
     this.lineTo([
-      end.x - Math.cos(angle + 0.3) * arrowSize,
-      end.y - Math.sin(angle + 0.3) * arrowSize,
+      end.x - Math.cos(angle + 0.2) * arrowSize,
+      end.y - Math.sin(angle + 0.2) * arrowSize,
     ]);
     this.lineTo([
-      end.x - Math.cos(angle - 0.3) * arrowSize,
-      end.y - Math.sin(angle - 0.3) * arrowSize,
+      end.x - Math.cos(angle - 0.2) * arrowSize,
+      end.y - Math.sin(angle - 0.2) * arrowSize,
     ]);
     this.lineTo(end);
     ctx.stroke();
+    ctx.fill();
     ctx.closePath();
     if (label) {
       const shift = direction
