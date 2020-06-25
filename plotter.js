@@ -39,20 +39,23 @@ function segment2segment(a1, a2, b1, b2) {
   if (isPointOnLine) return new ImmutableVec2(x, y);
 }
 
+// This is an optimized geometrical solution.
+// All intermediate calculations and square roots removed where possible.
+// Alternative is to solve quadratic equation of | Ro + Rd*t - So | = r
 function ray2sphere(rayOrigin, rayDirection, sphereOrigin, sphereRadius) {
   const S = sphereOrigin.vsub(rayOrigin);
-  const D = rayDirection.dot(S);
-  const H = sphereRadius ** 2 - (S.dot(S) - D ** 2);
+  const P = rayDirection.dot(S);
+  const H = sphereRadius ** 2 - (S.dot(S) - P ** 2);
 
   if (H < 0) return undefined;
 
   const h = Math.sqrt(H);
-  const t1 = D + h;
+  const t1 = P + h;
 
   // Both points are behind the ray origin
   if (t1 < 0) return undefined;
 
-  const t2 = D - h;
+  const t2 = P - h;
 
   const min_t = Math.min(t1, t2);
   const max_t = Math.max(t1, t2);

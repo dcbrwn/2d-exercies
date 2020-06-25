@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="plotter.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+      'use strict';
+
+      const plotter = new Plotter(canvas);
+      plotter.viewport([-10, -10], [20, 20]);
+      const C = vec2(-2, -3.4);
+      const r = 3;
+      let O = vec2(2.3, 2.3);
+
+      render(vec2(0.5));
+
+      canvas.onmousemove = (e) => {
+        render(plotter.mapToViewport([e.offsetX, e.offsetY]));
+      }
+
+      canvas.onclick = (e) => {
+        O = plotter.mapToViewport([e.offsetX, e.offsetY]);
+      }
+
+      function render(point) {
+        plotter.graphLayout(10, 1);
+
+        const OP = point.vsub(O).normalize();
+        const OC = C.vsub(O);
+        plotter.stroke = 'lightgray';
+
+        plotter.segment(O, O.vadd(OP.smul(100)));
+
+        plotter.stroke = 'black';
+        plotter.fill = 'black';
+        plotter.arc(C, r);
+        plotter.point("C", C);
+
+        plotter.stroke = 'gray';
+        plotter.segment(O, C, "S");
+
+        const t = ray2sphere(O, OP, C, r);
+
+        if (t !== undefined) {
+          plotter.stroke = 'gray';
+          const X = O.vadd(OP.smul(t));
+
+          // Projection of ray to vector OC
+          const P = O.vadd(OP.smul(OC.dot(OP)));
+          plotter.point("P", P);
+
+          plotter.fill = 'red';
+          plotter.point("X", X);
+        }
+
+        plotter.fill = 'black';
+        plotter.point("O", O);
+      }
+    </script>
+  </body>
+</html>
