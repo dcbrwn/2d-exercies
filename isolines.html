@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="plotter.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+      'use strict';
+
+      const canvas = document.getElementById('canvas');
+      const plotter = new Plotter(canvas);
+
+      // plotter.viewport([-10, -10], [20, 20]);
+
+      const r = 0.3;
+      let C1, C2, C3;
+      let t0 = performance.now();
+      let t = 0;
+
+      const fn = (x, y) => {
+        const p = vec2(x, y);
+        return Math.min(
+          C1.vsub(p).distance() - r,
+          C2.vsub(p).distance() - r,
+          C3.vsub(p).distance() - r,
+        );
+      };
+
+      function render() {
+        const t1 = performance.now();
+        t += (t1 - t0) / 1000;
+        t0 = t1;
+
+        C1 = vec2(Math.cos(t / 4), Math.sin(t / 3)).smul(0.7);
+        C2 = vec2(Math.cos(t / 4), Math.sin(t / 5)).smul(0.7);
+        C3 = vec2(Math.cos(t / 6), Math.sin(t / 7)).smul(0.7);
+
+        plotter.fill = 'ivory';
+        plotter.clear();
+
+        plotter.stroke = 'lightgray';
+        plotter.arc(C1, r);
+        plotter.arc(C2, r);
+        plotter.arc(C3, r);
+        plotter.stroke = 'red';
+
+        plotter.sdfIsoline({
+          fn,
+          color: 'red',
+          debugFrame: true,
+          frameColor: 'gray',
+        });
+
+        requestAnimationFrame(render);
+      }
+
+      render();
+    </script>
+  </body>
+</html>
