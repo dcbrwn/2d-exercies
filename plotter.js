@@ -5,7 +5,9 @@ function isNear(value, target, error) {
 }
 
 function isInRange(value, from, to, error = 0) {
-  return value >= from - error && value <= to + error;
+  const min = Math.min(from, to);
+  const max = Math.max(from, to);
+  return value >= min - error && value <= max + error;
 }
 
 function line2line(A1, B1, C1, A2, B2, C2) {
@@ -175,6 +177,8 @@ class ImmutableVec2 extends Array {
 function vec2(x, y) {
   return new ImmutableVec2(x, y);
 }
+
+const SIN_45 = Math.sin(Math.PI / 4);
 
 class Plotter {
   constructor(canvas) {
@@ -356,5 +360,105 @@ class Plotter {
     }
     this.ctx.stroke();
     this.ctx.closePath();
+  }
+
+  /**
+   * 
+   * @param {object} options
+   * @param {Function} options.fn
+   * @param {string} options.color
+   * @param {boolean} options.debugFrame
+   * @param {boolean} options.frameColor
+   * @param {Array<Array<number>} options.domain
+   * @param {Array<Array<number>} rects
+   * @param {number} level
+   */
+  sdfIsoline(options, rects = [], level = 0) {
+    const domain = options.domain || this.domain;
+
+    // Clearance
+    const E = 1e-5;
+    // Grid size, aka step
+    const s = (domain[0][1] - domain[0][0]) / 2;
+    const sPx = this.map(
+      [0, this.domain[0][1] - this.domain[0][0]],
+      [0, this.canvasSize[0]],
+      s
+    );
+
+    const points = [];
+
+    this.ctx.beginPath();
+
+    for (let x = domain[0][0]; x < domain[0][1]; x += s) {
+      for (let y = domain[1][0]; y < domain[1][1]; y += s) {
+        const centerValue = options.fn(x + s/2, y + s/2);
+
+        if (Math.abs(centerValue) > s * SIN_45) {
+          continue;
+        }
+
+        rects.push([...this.mapToCanvas([x, y + s]), sPx, sPx]);
+
+        if (sPx < 10) {
+          const v0 = options.fn(x, y);
+          const v1 = options.fn(x + s, y);
+          const v2 = options.fn(x + s, y + s);
+          const v3 = options.fn(x, y + s);
+  
+          if (Math.sign(v0) !== Math.sign(v1)) {
+            points.push([x + s/2, y]);
+          }
+  
+          if (Math.sign(v1) !== Math.sign(v2)) {
+            points.push([x + s, y + s/2]);
+          }
+  
+          if (Math.sign(v2) !== Math.sign(v3)) {
+            points.push([x + s/2, y + s]);
+          }
+  
+          if (Math.sign(v3) !== Math.sign(v0)) {
+            points.push([x, y + s/2]);
+          }
+  
+          if (points.length > 1) {
+            if (sPx <= 10) {
+              this.moveTo(points[0]);
+              for (let i = 1; i < points.length; i += 1) this.lineTo(points[i]);
+            }
+          }
+          
+          points.length = 0;
+        } else {
+          for (let x1 = x; x1 < x + s; x1 += s) {
+            for (let y1 = y; y1 < y + s; y1 += s) {
+              this.sdfIsoline({
+                ...options,
+                domain: [
+                  [x1, x1 + s],
+                  [y1, y1 + s],
+                ],
+              }, rects, level + 1);
+            }
+          }
+        }
+      }
+    }
+
+    this.ctx.strokeStyle = options.color || 'green';
+    this.ctx.stroke();
+    this.ctx.closePath();
+
+    if (options.debugFrame && level === 0) {
+      this.ctx.beginPath();
+  
+      for (const rect of rects) {
+        this.ctx.rect(...rect);
+      }
+      this.ctx.strokeStyle = options.frameColor || 'rgba(255, 127, 0, 0.25)';
+      this.ctx.stroke();
+      this.ctx.closePath();
+    }
   }
 }
