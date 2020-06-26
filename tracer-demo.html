@@ -13,24 +13,34 @@
 
     const plotter = new Plotter(canvas);
     plotter.viewport([-10, -10], [20, 20]);
-    const C = vec2(-2, -3.4);
-    const r = 3;
-    let O = vec2(2.3, 2.3);
 
-    render(vec2(0.5));
+    let O = vec2(2.3, 2.3);
+    let P = O;
+    let C = vec2(-2, -3.4);
+    const r = 3;
+
+    render(P);
 
     canvas.onmousemove = (e) => {
-      render(plotter.mapToViewport([e.offsetX, e.offsetY]));
+      P = plotter.mapToViewport([e.offsetX, e.offsetY]);
+      render();
     }
 
     canvas.onclick = (e) => {
       O = plotter.mapToViewport([e.offsetX, e.offsetY]);
+      render();
     }
 
-    function render(point) {
+    canvas.oncontextmenu = (e) => {
+      e.preventDefault();
+      C = plotter.mapToViewport([e.offsetX, e.offsetY]);
+      render();
+    }
+
+    function render() {
       plotter.graphLayout(10, 1);
 
-      const OP = point.vsub(O).normalize();
+      const OP = P.vsub(O).normalize();
 
       plotter.stroke = "black";
       plotter.fill = "black";
