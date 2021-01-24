@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css" />
+    <script src="plotter.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="500px" height="500px"></canvas>
+    <script>
+      'use strict';
+
+      const canvas = document.getElementById('canvas');
+      const plotter = new Plotter(canvas);
+      const angle = toRad(137.5);
+
+      render(vec2(0.5, 0));
+
+      canvas.onmousemove = (e) => {
+        render(plotter.mapToViewport([e.offsetX, e.offsetY]));
+      }
+
+      function vogel(n, c, count) {
+        return vec2(
+          c * Math.sqrt(n),
+          n * angle
+        );
+      }
+
+      function render(a, b) {
+        plotter.graphLayout(1);
+        plotter.fill = 'hsla(150, 50%, 50%, 0.7)';
+
+        const count = Math.pow(a.x + 1, 1.5) * 1000;
+        const c = 1 / Math.sqrt(count);
+
+        for (let n = 0; n < count; n += 1) {
+          plotter.sector(vogel(n, c, count).polarToCartesian(), 0.5 / Math.sqrt(count));
+        }
+      }
+    </script>
+  </body>
+</html>

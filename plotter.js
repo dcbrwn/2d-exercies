@@ -1,5 +1,9 @@
 'use strict';
 
+function toRad(deg) {
+  return (Math.PI / 180) * deg;
+}
+
 function isNear(value, target, error) {
   return Math.abs(target - value) <= error;
 }
@@ -171,6 +175,14 @@ class ImmutableVec2 extends Array {
       x * Math.sin(angle) + y * Math.cos(angle)
     );
   }
+
+  polarToCartesian() {
+    const { x, y } = this;
+    return new ImmutableVec2(
+      x * Math.cos(y),
+      x * Math.sin(y)
+    );
+  }
 }
 
 // Shorthand
@@ -240,6 +252,18 @@ class Plotter {
       endAngle,
       true);
     this.ctx.stroke();
+    this.ctx.closePath();
+  }
+
+  sector(center, radius, startAngle = 0, endAngle = Math.PI * 2) {
+    this.ctx.beginPath();
+    this.ctx.arc(
+      ...this.mapToCanvas(center),
+      this.canvasSize[0] / (this.domain[0][1] - this.domain[0][0]) * radius,
+      startAngle,
+      endAngle,
+      true);
+    this.ctx.fill();
     this.ctx.closePath();
   }
 
@@ -363,7 +387,7 @@ class Plotter {
   }
 
   /**
-   * 
+   *
    * @param {object} options
    * @param {Function} options.fn
    * @param {string} options.color
@@ -405,30 +429,30 @@ class Plotter {
           const v1 = options.fn(x + s, y);
           const v2 = options.fn(x + s, y + s);
           const v3 = options.fn(x, y + s);
-  
+
           if (Math.sign(v0) !== Math.sign(v1)) {
             points.push([x + s/2, y]);
           }
-  
+
           if (Math.sign(v1) !== Math.sign(v2)) {
             points.push([x + s, y + s/2]);
           }
-  
+
           if (Math.sign(v2) !== Math.sign(v3)) {
             points.push([x + s/2, y + s]);
           }
-  
+
           if (Math.sign(v3) !== Math.sign(v0)) {
             points.push([x, y + s/2]);
           }
-  
+
           if (points.length > 1) {
             if (sPx <= 10) {
               this.moveTo(points[0]);
               for (let i = 1; i < points.length; i += 1) this.lineTo(points[i]);
             }
           }
-          
+
           points.length = 0;
         } else {
           for (let x1 = x; x1 < x + s; x1 += s) {
@@ -452,7 +476,7 @@ class Plotter {
 
     if (options.debugFrame && level === 0) {
       this.ctx.beginPath();
-  
+
       for (const rect of rects) {
         this.ctx.rect(...rect);
       }
